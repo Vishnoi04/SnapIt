@@ -1,0 +1,1 @@
+﻿# SnapIt - Your Second Memory
