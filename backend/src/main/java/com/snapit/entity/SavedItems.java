@@ -109,4 +109,15 @@ public class SavedItems {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    @PrePersist
+    public void onCreate(){
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        createdAt = currentDateTime;
+        updatedAt = currentDateTime;
+    }
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

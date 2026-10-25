@@ -1,7 +1,9 @@
 package com.snapit.controller;
 
-import com.snapit.entity.SavedItems;
+import com.snapit.dto.request.SavedItemsRequest;
+import com.snapit.dto.response.SavedItemsResponse;
 import com.snapit.service.SavedItemsService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,24 +19,28 @@ public class SavedItemsController {
     private SavedItemsService savedItemsService;
 
     @PostMapping
-    public ResponseEntity<String> saveItems(@RequestBody SavedItems payLoad){
-        SavedItems savedItem = savedItemsService.saveItem(payLoad);
-        String successMessage = "Item is successfully saved with ID : " + savedItem.getId();
-        return new ResponseEntity<String>(successMessage,HttpStatus.CREATED);
+    public ResponseEntity<String> saveItems(@Valid @RequestBody SavedItemsRequest payLoad) {
+        SavedItemsResponse savedItem = savedItemsService.saveItem(payLoad);
+        String successMessage =
+                "Item is successfully saved with ID : " + savedItem.getId();
+        return new ResponseEntity<>(successMessage, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<SavedItems>> getAllSavedItems(){
-        List<SavedItems> savedItemsList = savedItemsService.getAllSavedItems();
-
+    public ResponseEntity<List<SavedItemsResponse>> getAllSavedItems() {
+        List<SavedItemsResponse> savedItemsList =
+                savedItemsService.getAllSavedItems();
         return new ResponseEntity<>(savedItemsList, HttpStatus.OK);
     }
 
     @GetMapping("/{Id}")
-    public ResponseEntity<SavedItems> getSavedItemById(@PathVariable Long Id){
-        Optional<SavedItems> optionalSavedItem = savedItemsService.getSavedItemById(Id);
-        SavedItems savedItem = optionalSavedItem.orElseThrow();
-        return new ResponseEntity<>(savedItem, HttpStatus.OK);
+    public ResponseEntity<SavedItemsResponse> getSavedItemById(
+            @PathVariable Long Id) {
+        SavedItemsResponse savedItem = savedItemsService.getSavedItemById(Id);
+        if (savedItem == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(savedItem);
     }
  
     @DeleteMapping("/{Id}")
