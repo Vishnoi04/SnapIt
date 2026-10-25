@@ -1,6 +1,7 @@
 package com.snapit.entity;
 
 import com.snapit.enums.MemoryType;
+import com.snapit.enums.ProcessingStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,8 @@ public class SavedItems {
     private String description;
     private String extractedText;
     private String filePath;
+    @Enumerated(EnumType.STRING)
+    private ProcessingStatus processingStatus = ProcessingStatus.PENDING;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -93,7 +96,13 @@ public class SavedItems {
     public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
+    public ProcessingStatus getProcessingStatus() {
+        return processingStatus;
+    }
 
+    public void setProcessingStatus(ProcessingStatus processingStatus) {
+        this.processingStatus = processingStatus;
+    }
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.management.monitor.StringMonitor;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,5 +28,12 @@ public class GlobalExceptionHandler {
         Map<String, String> errorMap = new HashMap<>();
         errorMap.put("message : ", exception.getMessage());
         return new ResponseEntity<>(errorMap, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(WebPageFetchException.class)
+    public ResponseEntity<Map<String, String>> handleWebPageFetchException(WebPageFetchException exception){
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message : ", exception.getMessage());
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_GATEWAY);
     }
 }

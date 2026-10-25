@@ -1,6 +1,7 @@
 package com.snapit.dto.response;
 
 import com.snapit.enums.MemoryType;
+import com.snapit.enums.ProcessingStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 
@@ -15,6 +16,8 @@ public class SavedItemsResponse {
     private String description;
     private String extractedText;
     private String filePath;
+    @Enumerated(EnumType.STRING)
+    private ProcessingStatus processingStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -88,6 +91,14 @@ public class SavedItemsResponse {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public ProcessingStatus getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public void setProcessingStatus(ProcessingStatus processingStatus) {
+        this.processingStatus = processingStatus;
     }
 
     public LocalDateTime getCreatedAt() {
