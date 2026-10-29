@@ -35,6 +35,9 @@ public class WebPageServiceImpl implements WebPageService {
         String description = document.select("meta[name=description]").attr("content");
         document.select("script, style, noscript").remove();
         String text = document.body().text();
+        if (text.length() > 100_000){
+            text = text.substring(0, 100_000);
+        }
         SavedItemsRequest savedItemsRequest = new SavedItemsRequest();
         savedItemsRequest.setDescription(description);
         savedItemsRequest.setTitle(title);
@@ -42,6 +45,7 @@ public class WebPageServiceImpl implements WebPageService {
         savedItemsRequest.setContentType(MemoryType.WEBPAGE);
         savedItemsRequest.setSourceUrl(url);
         SavedItemsResponse result = savedItemsService.saveItem(savedItemsRequest);
+        savedItemsService.updateProcessingStatus(result.getId(), ProcessingStatus.COMPLETED);
         result.setProcessingStatus(ProcessingStatus.COMPLETED);
         return result;
     }

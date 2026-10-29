@@ -3,11 +3,15 @@ package com.snapit.service.impl;
 import com.snapit.dto.request.SavedItemsRequest;
 import com.snapit.dto.response.SavedItemsResponse;
 import com.snapit.entity.SavedItems;
+import com.snapit.enums.MemoryType;
+import com.snapit.enums.ProcessingStatus;
 import com.snapit.exception.ResourceNotFoundException;
 import com.snapit.repository.SavedItemsRepository;
 import com.snapit.service.SavedItemsService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,4 +55,23 @@ public class SavedItemsServiceImpl implements SavedItemsService {
         }
         savedItemsRepository.deleteById(Id);
     }
+
+    @Override
+    public void updateProcessingStatus(Long Id, ProcessingStatus processingStatus) {
+        SavedItems savedItems = savedItemsRepository.findById(Id).orElseThrow(()-> new ResourceNotFoundException("Saved items not found with Id : " + Id));
+        savedItemsRepository.save(savedItems);
+    }
+
+    @Override
+    public Page<SavedItemsResponse> searchItems(
+            String keyword,
+            MemoryType contentType,
+            Pageable pageable) {
+
+        return savedItemsRepository
+                .searchItems(keyword, contentType, pageable)
+                .map(savedItem ->
+                        modelMapper.map(savedItem, SavedItemsResponse.class));
+    }
+
 }

@@ -13,7 +13,7 @@ public class WebPageExtractionServiceImpl implements WebPageExtractionService {
     @Override
     public Document fetchWebPage(String url) {
         try{
-           return Jsoup.connect(url).timeout(100000).get();
+           return Jsoup.connect(url).maxBodySize(5 * 1024 * 1024).timeout(100000).get();
         }catch (IOException exception){
             throw new WebPageFetchException("Unable to fecth WebPage. Please check URl, try again later", exception);
         }

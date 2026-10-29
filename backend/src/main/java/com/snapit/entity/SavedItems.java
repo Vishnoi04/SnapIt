@@ -21,6 +21,7 @@ public class SavedItems {
     private String filePath;
     @Enumerated(EnumType.STRING)
     private ProcessingStatus processingStatus = ProcessingStatus.PENDING;
+    private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -96,6 +97,7 @@ public class SavedItems {
     public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
+
     public ProcessingStatus getProcessingStatus() {
         return processingStatus;
     }
@@ -103,6 +105,15 @@ public class SavedItems {
     public void setProcessingStatus(ProcessingStatus processingStatus) {
         this.processingStatus = processingStatus;
     }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

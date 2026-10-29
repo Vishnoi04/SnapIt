@@ -17,17 +17,19 @@ public class SavedItemsRequest {
     private String description;
     private String extractedText;
     private String filePath;
+    private String language;
 
     public SavedItemsRequest() {
     }
 
-    public SavedItemsRequest(String title, String sourceUrl, MemoryType contentType, String description, String extractedText, String filePath) {
+    public SavedItemsRequest(String title, String sourceUrl, MemoryType contentType, String description, String extractedText, String filePath, String language) {
         this.title = title;
         this.sourceUrl = sourceUrl;
         this.contentType = contentType;
         this.description = description;
         this.extractedText = extractedText;
         this.filePath = filePath;
+        this.language = language;
     }
 
     public String getTitle() {
@@ -76,5 +78,13 @@ public class SavedItemsRequest {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }

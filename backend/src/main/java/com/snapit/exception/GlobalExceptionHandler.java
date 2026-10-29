@@ -36,4 +36,25 @@ public class GlobalExceptionHandler {
         errorMap.put("message : ", exception.getMessage());
         return new ResponseEntity<>(errorMap, HttpStatus.BAD_GATEWAY);
     }
+
+    @ExceptionHandler(PdfExtractionException.class)
+    public ResponseEntity<Map<String, String>> handlePdfExtractionException(PdfExtractionException exception){
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message : ", exception.getMessage());
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ImageOcrException.class)
+    public ResponseEntity<Map<String, String>> handleImageOcrException(ImageOcrException exception){
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message : ", exception.getMessage());
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidImageException(InvalidImageException exception){
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message : ", exception.getMessage());
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -18,6 +18,7 @@ public class SavedItemsResponse {
     private String filePath;
     @Enumerated(EnumType.STRING)
     private ProcessingStatus processingStatus;
+    private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -99,6 +100,14 @@ public class SavedItemsResponse {
 
     public void setProcessingStatus(ProcessingStatus processingStatus) {
         this.processingStatus = processingStatus;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public LocalDateTime getCreatedAt() {
