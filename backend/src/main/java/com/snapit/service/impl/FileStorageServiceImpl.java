@@ -1,6 +1,7 @@
 package com.snapit.service.impl;
 
 import com.snapit.service.FileStorageService;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.UUID;
 
+@Service
 public class FileStorageServiceImpl implements FileStorageService {
     private final Path storageDirectory = Path.of("./uploads").toAbsolutePath().normalize();
     @Override

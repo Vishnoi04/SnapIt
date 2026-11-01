@@ -57,4 +57,12 @@ public class GlobalExceptionHandler {
         errorMap.put("message : ", exception.getMessage());
         return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateResourceException(DuplicateResourceException exception){
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message : ", exception.getMessage());
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+
+    }
 }
