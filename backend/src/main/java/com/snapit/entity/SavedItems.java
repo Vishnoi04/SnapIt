@@ -24,6 +24,9 @@ public class SavedItems {
     private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public SavedItems() {
     }
@@ -128,6 +131,14 @@ public class SavedItems {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @PrePersist

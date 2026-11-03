@@ -63,6 +63,18 @@ public class SavedItemsController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SavedItemsResponse> updateSavedItem(
+            @PathVariable Long id,
+            @Valid @RequestBody SavedItemsRequest request
+    ) {
+        SavedItemsResponse response =
+                savedItemsService.updateSavedItem(id, request);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
     @DeleteMapping("/{Id}")
     public ResponseEntity<String> deleteSavedItemById(@PathVariable Long Id){
         savedItemsService.deleteSavedItemById(Id);

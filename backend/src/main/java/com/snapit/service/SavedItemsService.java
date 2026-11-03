@@ -17,4 +17,5 @@ public interface SavedItemsService {
     void deleteSavedItemById(Long Id);
     void updateProcessingStatus(Long Id, ProcessingStatus processingStatus);
     Page<SavedItemsResponse> searchItems(String keyword, MemoryType contentType, Pageable pageable);
+    SavedItemsResponse updateSavedItem(Long id, SavedItemsRequest request);
 }
