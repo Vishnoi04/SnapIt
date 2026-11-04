@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
 import Navbar from '../components/layout/Navbar'
 import '../App.css'
 
 type Theme = 'dark' | 'light'
+type LandingPageProps = {
+  theme: Theme
+  onToggleTheme: () => void
+}
 
 const features = [
   {
@@ -96,26 +99,10 @@ const faqs = [
   },
 ]
 
-function readSavedTheme(): Theme {
-  const savedTheme = window.localStorage.getItem('snapit-theme')
-  return savedTheme === 'light' ? 'light' : 'dark'
-}
-
-function LandingPage() {
-  const [theme, setTheme] = useState<Theme>(readSavedTheme)
-
-  useEffect(() => {
-    window.localStorage.setItem('snapit-theme', theme)
-  }, [theme])
-
+function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
   return (
-    <div className="landing-page" data-theme={theme}>
-      <Navbar
-        theme={theme}
-        onToggleTheme={() =>
-          setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-        }
-      />
+    <div className="landing-page">
+      <Navbar theme={theme} onToggleTheme={onToggleTheme} />
 
       <main>
         <section className="landing-hero" aria-labelledby="hero-title">

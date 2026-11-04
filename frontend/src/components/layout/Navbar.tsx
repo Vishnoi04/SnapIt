@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 type NavbarProps = {
     theme: 'dark' | 'light'
@@ -10,10 +11,10 @@ function Navbar({ theme, onToggleTheme }: NavbarProps) {
 
     return (
         <header className="navbar">
-            <a href="/" className="navbar-brand">
+            <Link to="/" className="navbar-brand">
                 <span className="brand-icon">S</span>
                 <span>snapit</span>
-            </a>
+            </Link>
 
             <button
                 type="button"
@@ -34,8 +35,8 @@ function Navbar({ theme, onToggleTheme }: NavbarProps) {
             </nav>
 
             <div className="navbar-actions">
-                <a href="/login" className="login-link">Log in</a>
-                <a href="/signup" className="signup-button">Get Started</a>
+                <Link to="/login" className="login-link">Log in</Link>
+                <Link to="/signup" className="signup-button">Get Started</Link>
                 <button
                     className="theme-toggle"
                     type="button"
