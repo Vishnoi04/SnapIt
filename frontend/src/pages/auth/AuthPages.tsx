@@ -1,5 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { ApiError } from '../../types/api'
 
 type Theme = 'dark' | 'light'
 type AuthPageName = 'login' | 'signup' | 'forgot-password'
@@ -157,13 +159,15 @@ function AuthNotice({ children }: { children: ReactNode }) {
 }
 
 function LoginPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
+  const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [notice, setNotice] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors: FormErrors = {}
 
@@ -176,8 +180,32 @@ function LoginPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
 
     setErrors(nextErrors)
     setNotice('')
-    if (Object.keys(nextErrors).length === 0) {
-      setNotice('Sign-in is not connected yet. Your credentials were not sent.')
+
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
+
+    try {
+      await login({ email: email.trim(), password })
+      navigate('/dashboard', { replace: true })
+    } catch (error) {
+      const apiError = error instanceof ApiError ? error : null
+      const mergedErrors: FormErrors = {}
+
+      if (apiError) {
+        const fieldErrors = apiError.fieldErrors ?? {}
+        if (fieldErrors.email) mergedErrors.email = fieldErrors.email
+        if (fieldErrors.password) mergedErrors.password = fieldErrors.password
+      }
+
+      setErrors(mergedErrors)
+      if (apiError?.status === 401) {
+        setNotice('Invalid email or password.')
+      } else if (apiError) {
+        setNotice(apiError.message)
+      } else {
+        setNotice('Unable to sign in right now. Please try again.')
+      }
     }
   }
 
@@ -228,6 +256,8 @@ function LoginPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
 }
 
 function SignupPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
+  const navigate = useNavigate()
+  const { signup } = useAuth()
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -237,7 +267,7 @@ function SignupPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
   const [errors, setErrors] = useState<FormErrors>({})
   const [notice, setNotice] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors: FormErrors = {}
 
@@ -264,8 +294,40 @@ function SignupPage({ theme, onToggleTheme }: Omit<AuthPagesProps, 'page'>) {
 
     setErrors(nextErrors)
     setNotice('')
-    if (Object.keys(nextErrors).length === 0) {
-      setNotice('Account creation is not connected yet. Your details were not sent or saved.')
+
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
+
+    try {
+      await signup({
+        username: username.trim(),
+        email: email.trim(),
+        password,
+      })
+      setNotice('Account created successfully. Redirecting to login…')
+      window.setTimeout(() => {
+        navigate('/login', { replace: true })
+      }, 800)
+    } catch (error) {
+      const apiError = error instanceof ApiError ? error : null
+      const mergedErrors: FormErrors = {}
+
+      if (apiError) {
+        const fieldErrors = apiError.fieldErrors ?? {}
+        if (fieldErrors.username) mergedErrors['signup-username'] = fieldErrors.username
+        if (fieldErrors.email) mergedErrors['signup-email'] = fieldErrors.email
+        if (fieldErrors.password) mergedErrors['signup-password'] = fieldErrors.password
+      }
+
+      setErrors(mergedErrors)
+      if (apiError?.status === 409) {
+        setNotice('An account with that username or email already exists.')
+      } else if (apiError) {
+        setNotice(apiError.message)
+      } else {
+        setNotice('Unable to create the account right now. Please try again.')
+      }
     }
   }
 
