@@ -8,11 +8,9 @@ services:
     region: singapore
     plan: free
     envVars:
-      - key: DB_URL
+      - key: DATABASE_URL
         sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
+      - key: DATABASE_URL_UNPOOLED
         sync: false
       - key: SNAPIT_JWT_SECRET
         generateValue: true

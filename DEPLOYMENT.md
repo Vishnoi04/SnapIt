@@ -6,20 +6,20 @@ projects. Check each provider's current limits before deploying.
 
 ## 1. Create the Neon database
 
-Create a Neon project and copy its connection details. Keep the hostname,
-database name, username, and password private. Neon currently lists a 1 GB
-storage limit and 100 compute-hours per month on its Free plan; free projects
-are not automatically removed for inactivity.
+Create a Neon project and use its pooled connection string for application
+traffic and its direct connection string for Flyway migrations. Keep both
+connection strings private. Neon currently lists a 1 GB storage limit and 100
+compute-hours per month on its Free plan; free projects are not automatically
+removed for inactivity.
 
 ## 2. Deploy the API on Render
 
 Create a Render Blueprint from this repository and select `render.yaml`. The
-Blueprint creates the free API service. Supply these prompted values using the
+Blueprint creates the free API service. Supply these prompted values from the
 Neon connection details:
 
-- `DB_URL`: `jdbc:postgresql://<neon-host>/<database>?sslmode=require`
-- `DB_USERNAME`: Neon database username
-- `DB_PASSWORD`: Neon database password
+- `DATABASE_URL`: the pooled Neon URL (the hostname contains `-pooler`)
+- `DATABASE_URL_UNPOOLED`: the direct Neon URL (without `-pooler`)
 - `SNAPIT_CORS_ALLOWED_ORIGINS`: the exact Vercel site origin, such as
   `https://your-project.vercel.app` (no trailing slash)
 
@@ -32,9 +32,12 @@ the first request after inactivity can take about a minute. Its local
 filesystem is temporary; uploaded images and PDFs do not survive an instance
 restart or redeploy.
 
-The backend's Flyway baseline migration creates the schema on the new, empty
-Neon database. Do not point the deployment at a database containing unrelated
-tables without reviewing the migration and baseline behavior first.
+The backend uses the pooled URL for application traffic and the direct URL for
+Flyway migrations. For local development, run the backend with `npx neon-env
+run --` so the branch URLs are injected as environment variables; `neon deploy`
+also writes them to the ignored root `.env.local`. The Flyway baseline migration
+creates the schema on an empty database. Review the target schema before
+applying it to an existing database.
 
 ## 3. Deploy the frontend on Vercel
 
