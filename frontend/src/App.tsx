@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AuthPages from './pages/auth/AuthPages'
 import LandingPage from './pages/LandingPage'
+import DashboardPage from './pages/dashboard/DashboardPage'
 
 type Theme = 'dark' | 'light'
 
@@ -39,6 +40,10 @@ function App() {
           <Route
             path="/forgot-password"
             element={<AuthPages page="forgot-password" theme={theme} onToggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/dashboard/*"
+            element={<DashboardPage theme={theme} onToggleTheme={toggleTheme} />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
