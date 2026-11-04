@@ -29,12 +29,29 @@ import {
   X,
   Globe2,
   Moon,
+  Tags,
 } from 'lucide-react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import ItemEditorDialog from '../../components/dashboard/ItemEditorDialog'
-import { loadSavedItems, persistSavedItems, starterCollections } from '../../services/mockItems'
+import { loadSavedItems, persistSavedItems } from '../../services/mockItems'
+import {
+  loadCollections,
+  loadPreferences,
+  loadProfile,
+  saveCollections,
+  savePreferences,
+  saveProfile,
+} from '../../services/workspaceStorage'
+import type { Collection } from '../../types/collection'
 import type { SavedItem, SavedItemType } from '../../types/savedItem'
 import { isSavedItemType, savedItemTypeLabels, savedItemTypes } from '../../types/savedItem'
+import type { UserProfile } from '../../types/user'
+import {
+  CollectionsPage,
+  ProfilePage,
+  SettingsPage,
+  TagsPage,
+} from './WorkspacePages'
 
 type SortOrder = 'recent' | 'oldest' | 'title-asc' | 'title-desc'
 type ViewMode = 'grid' | 'list'
@@ -68,6 +85,9 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [items, setItems] = useState<SavedItem[]>(loadSavedItems)
+  const [collections, setCollections] = useState<Collection[]>(loadCollections)
+  const [profile, setProfile] = useState<UserProfile>(loadProfile)
+  const [preferences, setPreferences] = useState(loadPreferences)
   const [query, setQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<SortOrder>('recent')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -89,6 +109,10 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
   const isFavorites = path === '/dashboard/favorites'
   const isUnsorted = path === '/dashboard/unsorted'
   const isRecent = path === '/dashboard/recent'
+  const isCollectionsPage = path === '/dashboard/collections'
+  const isTagsPage = path === '/dashboard/tags'
+  const isProfilePage = path === '/dashboard/profile'
+  const isSettingsPage = path === '/dashboard/settings'
   const filterTag = routeTag ? decodeURIComponent(routeTag) : ''
   const filterCollection = routeCollection ? decodeURIComponent(routeCollection) : ''
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -144,7 +168,15 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
 
   const pageTitle = selectedItem
     ? 'Item details'
-    : isFavorites
+    : isCollectionsPage
+      ? 'Collections'
+      : isTagsPage
+        ? 'Your tags'
+        : isProfilePage
+          ? 'Profile'
+          : isSettingsPage
+            ? 'Settings'
+            : isFavorites
       ? 'Favorites'
       : isUnsorted
         ? 'Unsorted'
@@ -206,8 +238,73 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
     }
   }
 
-  function showNextTaskMessage() {
-    setToast('Collection management is coming in the next workspace task.')
+  function commitCollections(nextCollections: Collection[]) {
+    setCollections(nextCollections)
+    try {
+      saveCollections(nextCollections)
+      setStorageError(false)
+    } catch {
+      setStorageError(true)
+    }
+  }
+
+  function handleSaveCollection(collection: Collection) {
+    const existing = collections.some((entry) => entry.id === collection.id)
+    const nextCollections = existing
+      ? collections.map((entry) => entry.id === collection.id ? collection : entry)
+      : [collection, ...collections]
+    const previousName = collections.find((entry) => entry.id === collection.id)?.name
+    if (previousName && previousName !== collection.name) {
+      commitItems(items.map((item) => item.collection === previousName ? { ...item, collection: collection.name } : item))
+    }
+    commitCollections(nextCollections)
+    setToast(existing ? 'Collection updated.' : 'Collection created.')
+  }
+
+  function handleDeleteCollection(collection: Collection) {
+    const count = items.filter((item) => item.collection === collection.name).length
+    const message = count
+      ? `Delete “${collection.name}”? ${count} saved ${count === 1 ? 'item will' : 'items will'} be moved to Unsorted.`
+      : `Delete “${collection.name}”? This cannot be undone.`
+    if (!window.confirm(message)) return
+    commitCollections(collections.filter((entry) => entry.id !== collection.id))
+    if (count) commitItems(items.map((item) => item.collection === collection.name ? { ...item, collection: '' } : item))
+    setToast('Collection deleted.')
+  }
+
+  function handleRenameTag(oldTag: string, newTag: string) {
+    commitItems(items.map((item) => item.tags.includes(oldTag)
+      ? { ...item, tags: [...new Set(item.tags.map((tag) => tag === oldTag ? newTag : tag))] }
+      : item))
+    setToast('Tag updated.')
+  }
+
+  function handleDeleteTag(tag: string) {
+    if (!window.confirm(`Remove “#${tag}” from all saved items?`)) return
+    commitItems(items.map((item) => ({ ...item, tags: item.tags.filter((entry) => entry !== tag) })))
+    setToast('Tag removed from saved items.')
+  }
+
+  function handleSaveProfile(nextProfile: UserProfile): boolean {
+    setProfile(nextProfile)
+    try {
+      saveProfile(nextProfile)
+      setStorageError(false)
+      return true
+    } catch {
+      setStorageError(true)
+      return false
+    }
+  }
+
+  function handlePreferencesChange(nextPreferences: typeof preferences) {
+    setPreferences(nextPreferences)
+    try {
+      savePreferences(nextPreferences)
+      setStorageError(false)
+    } catch {
+      setStorageError(true)
+    }
   }
 
   return (
@@ -228,20 +325,18 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
 
           <div className="sidebar-section-heading">
             <p className="sidebar-section-label">COLLECTIONS</p>
-            <button type="button" className="sidebar-add" onClick={showNextTaskMessage} aria-label="Add collection"><Plus size={14} /></button>
-          </div>
-          {starterCollections.map((collection) => (
-            <SidebarLink
-              key={collection}
-              to={`/dashboard/collection/${encodeURIComponent(collection)}`}
-              label={collection}
-              icon={Folder}
-              onClick={() => setSidebarOpen(false)}
-            />
-          ))}
-          <button type="button" className="sidebar-nav-item sidebar-plain-button" onClick={showNextTaskMessage}>
-            <Folder size={16} /><span>Manage collections</span>
-          </button>
+            <button type="button" className="sidebar-add" onClick={() => navigate('/dashboard/collections')} aria-label="Add collection"><Plus size={14} /></button>
+            </div>
+            {collections.map((collection) => (
+              <SidebarLink
+                key={collection.id}
+                to={`/dashboard/collection/${encodeURIComponent(collection.name)}`}
+                label={collection.name}
+                icon={Folder}
+                onClick={() => setSidebarOpen(false)}
+              />
+            ))}
+            <SidebarLink to="/dashboard/collections" label="Manage collections" icon={Folder} onClick={() => setSidebarOpen(false)} />
 
           <p className="sidebar-section-label sidebar-spaced">CONTENT TYPE</p>
           {savedItemTypes.map((type) => {
@@ -270,19 +365,22 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
               </Link>
             ))}
           </div>
+          <SidebarLink to="/dashboard/tags" label="Manage tags" icon={Tags} onClick={() => setSidebarOpen(false)} />
         </nav>
 
         <div className="sidebar-bottom">
-          <button type="button" className="premium-prompt" onClick={() => setToast('SnapIt Premium details are coming soon.')}>
+          <Link to="/pricing" className="premium-prompt">
             <span className="premium-icon"><Sparkles size={16} /></span>
             <span><strong>More room to grow</strong><small>Explore Premium</small></span>
             <ChevronDown size={14} className="premium-chevron" />
-          </button>
-          <button type="button" className="sidebar-nav-item sidebar-plain-button" onClick={showNextTaskMessage}><Settings size={16} /><span>Settings</span></button>
+          </Link>
+          <SidebarLink to="/dashboard/settings" label="Settings" icon={Settings} onClick={() => setSidebarOpen(false)} />
           <div className="sidebar-profile">
-            <span className="profile-avatar">V</span>
-            <span className="profile-copy"><strong>Vicky</strong><small>Personal space</small></span>
-            <button type="button" onClick={() => setToast('You are using a local demo workspace.')} aria-label="Workspace information"><MoreHorizontal size={17} /></button>
+            <Link to="/dashboard/profile" className="sidebar-profile-link">
+              <span className="profile-avatar">{profile.name.trim().charAt(0).toUpperCase() || 'S'}</span>
+              <span className="profile-copy"><strong>{profile.name}</strong><small>Personal space</small></span>
+            </Link>
+            <Link to="/dashboard/profile" className="profile-settings-link" aria-label="Edit profile"><MoreHorizontal size={17} /></Link>
           </div>
         </div>
       </aside>
@@ -305,21 +403,23 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button type="button" className="topbar-avatar" aria-label="Vicky profile">V</button>
+          <Link to="/dashboard/profile" className="topbar-avatar" aria-label={`${profile.name} profile`}>{profile.name.trim().charAt(0).toUpperCase() || 'S'}</Link>
         </header>
 
         <div className="dashboard-content">
           <div className="dashboard-page-heading">
             <div>
               <p className="dashboard-eyebrow">{selectedItem ? 'YOUR LIBRARY' : 'A LITTLE MORE ORGANIZED'}</p>
-              <h1>{selectedItem ? selectedItem.title : 'A good place to think.'}</h1>
+              <h1>{selectedItem ? selectedItem.title : isCollectionsPage || isTagsPage || isProfilePage || isSettingsPage ? pageTitle : 'A good place to think.'}</h1>
               <p className="dashboard-subtitle">
                 {selectedItem
                   ? 'Everything you saved, with the context you need.'
+                  : isCollectionsPage || isTagsPage || isProfilePage || isSettingsPage
+                    ? 'Manage your SnapIt space and personal preferences.'
                   : 'All the useful things you want to find again, together.'}
               </p>
             </div>
-            {!selectedItem && (
+            {!selectedItem && !isCollectionsPage && !isTagsPage && !isProfilePage && !isSettingsPage && (
               <button type="button" className="dashboard-button dashboard-button-primary add-item-button" onClick={() => openEditor()}>
                 <Plus size={17} /> Add new item
               </button>
@@ -339,13 +439,33 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
               onShare={() => setToast('Sharing is planned for a future release.')}
               onTag={(tag) => navigate(`/dashboard/tag/${encodeURIComponent(tag)}`)}
             />
+          ) : isCollectionsPage ? (
+            <CollectionsPage
+              collections={collections}
+              items={items}
+              onSave={handleSaveCollection}
+              onDelete={handleDeleteCollection}
+              onOpen={(collection) => navigate(`/dashboard/collection/${encodeURIComponent(collection.name)}`)}
+            />
+          ) : isTagsPage ? (
+            <TagsPage items={items} onRename={handleRenameTag} onDelete={handleDeleteTag} />
+          ) : isProfilePage ? (
+            <ProfilePage profile={profile} onSave={handleSaveProfile} />
+          ) : isSettingsPage ? (
+            <SettingsPage
+              theme={theme}
+              onToggleTheme={onToggleTheme}
+              preferences={preferences}
+              onPreferencesChange={handlePreferencesChange}
+              onLogout={() => setToast('Log out is unavailable because authentication is not connected.')}
+            />
           ) : (
             <>
               <section className="dashboard-stats" aria-label="Library summary">
                 <StatCard label="Saved items" value={items.length} icon={Bookmark} detail="Everything in one place" />
                 <StatCard label="Websites" value={items.filter((item) => item.type === 'website').length} icon={Globe2} detail="Ideas from around the web" />
                 <StatCard label="Documents" value={items.filter((item) => item.type === 'pdf').length} icon={FileText} detail="PDFs and references" />
-                <StatCard label="Collections" value={starterCollections.length} icon={Folder} detail="Curated spaces" />
+                <StatCard label="Collections" value={collections.length} icon={Folder} detail="Curated spaces" />
               </section>
 
               <div className="saved-items-toolbar">
@@ -422,7 +542,7 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
       {editorOpen && (
         <ItemEditorDialog
           item={editorItem ?? undefined}
-          collections={starterCollections}
+          collections={collections.map((collection) => collection.name)}
           onClose={() => { setEditorOpen(false); setEditorItem(null) }}
           onSave={saveItem}
         />
