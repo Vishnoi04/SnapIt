@@ -1,3 +1,5 @@
+import type { SavedItemApiType } from '../services/api/savedItemsService'
+
 export type SavedItemType = 'website' | 'image' | 'pdf' | 'note' | 'code'
 
 export type SavedItem = {
@@ -24,6 +26,36 @@ export const savedItemTypeLabels: Record<SavedItemType, string> = {
   pdf: 'PDF',
   note: 'Text note',
   code: 'Code snippet',
+}
+
+export function mapSavedItemApi(apiItem: SavedItemApiType): SavedItem {
+  const normalizedType: SavedItemType = apiItem.contentType === 'WEBPAGE'
+    ? 'website'
+    : apiItem.contentType === 'IMGAGE'
+      ? 'image'
+      : apiItem.contentType === 'PDF'
+        ? 'pdf'
+        : apiItem.contentType === 'TEXT'
+          ? 'note'
+          : 'website'
+
+  const content = apiItem.extractedText ?? apiItem.description ?? ''
+
+  return {
+    id: String(apiItem.id),
+    type: normalizedType,
+    title: apiItem.title,
+    description: apiItem.description ?? '',
+    content,
+    url: apiItem.sourceUrl ?? '',
+    tags: [],
+    collection: '',
+    favorite: apiItem.favorite,
+    createdAt: apiItem.createdAt ?? new Date().toISOString(),
+    updatedAt: apiItem.updatedAt ?? apiItem.createdAt ?? new Date().toISOString(),
+    fileName: '',
+    language: apiItem.language ?? '',
+  }
 }
 
 export function isSavedItemType(value: string): value is SavedItemType {

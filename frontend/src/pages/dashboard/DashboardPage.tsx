@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import ItemEditorDialog from '../../components/dashboard/ItemEditorDialog'
+import { createSavedItem, deleteSavedItem, fetchSavedItems, setFavorite, updateSavedItem } from '../../services/api/savedItemsService'
 import { loadSavedItems, persistSavedItems } from '../../services/mockItems'
 import {
   loadCollections,
@@ -44,7 +45,7 @@ import {
 } from '../../services/workspaceStorage'
 import type { Collection } from '../../types/collection'
 import type { SavedItem, SavedItemType } from '../../types/savedItem'
-import { isSavedItemType, savedItemTypeLabels, savedItemTypes } from '../../types/savedItem'
+import { isSavedItemType, mapSavedItemApi, savedItemTypeLabels, savedItemTypes } from '../../types/savedItem'
 import type { UserProfile } from '../../types/user'
 import {
   CollectionsPage,
@@ -98,6 +99,27 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [toast, setToast] = useState('')
   const [storageError, setStorageError] = useState(false)
+
+  useEffect(() => {
+    const token = window.localStorage.getItem('snapit-access-token')
+    if (!token) return
+
+    let isMounted = true
+    fetchSavedItems(0, 20)
+      .then((response) => {
+        if (!isMounted) return
+        setItems(response.content.map(mapSavedItemApi))
+      })
+      .catch(() => {
+        if (isMounted) {
+          setToast('Unable to load saved items from the server.')
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const path = location.pathname.replace(/\/+$/, '')
   const detailMatch = path.match(/^\/dashboard\/items\/([^/]+)$/)
@@ -191,27 +213,84 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
                 : 'All saved items'
 
   function saveItem(item: SavedItem) {
-    const exists = items.some((existing) => existing.id === item.id)
-    const nextItems = exists
-      ? items.map((existing) => existing.id === item.id ? item : existing)
-      : [item, ...items]
-    commitItems(nextItems)
-    setEditorOpen(false)
-    setEditorItem(null)
-    setToast(editorItem ? 'Your changes are saved.' : 'Saved to your SnapIt library.')
+    const mapper: Record<SavedItemType, 'WEBPAGE' | 'IMGAGE' | 'TEXT' | 'PDF'> = {
+      website: 'WEBPAGE',
+      image: 'IMGAGE',
+      pdf: 'PDF',
+      note: 'TEXT',
+      code: 'TEXT',
+    }
+
+    const payload = {
+      title: item.title,
+      sourceUrl: item.url || null,
+      contentType: mapper[item.type],
+      description: item.description || null,
+      extractedText: item.content || null,
+      language: item.language || null,
+    }
+
+    const request = item.id && /^\d+$/.test(item.id)
+      ? updateSavedItem(Number(item.id), payload)
+      : createSavedItem(payload)
+
+    request.then((response) => {
+      const nextItem = mapSavedItemApi(response)
+      const exists = items.some((existing) => existing.id === item.id)
+      const nextItems = exists
+        ? items.map((existing) => existing.id === item.id ? nextItem : existing)
+        : [nextItem, ...items]
+      commitItems(nextItems)
+      setEditorOpen(false)
+      setEditorItem(null)
+      setToast(editorItem ? 'Your changes are saved.' : 'Saved to your SnapIt library.')
+    }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Unable to save your item right now.'
+      setToast(message)
+    })
   }
 
   function toggleFavorite(itemId: string) {
-    commitItems(items.map((item) =>
-      item.id === itemId ? { ...item, favorite: !item.favorite, updatedAt: new Date().toISOString() } : item,
-    ))
+    const target = items.find((item) => item.id === itemId)
+    if (!target) return
+
+    const numericId = Number(itemId)
+    if (!Number.isFinite(numericId) || !Number.isInteger(numericId)) {
+      commitItems(items.map((item) => item.id === itemId ? { ...item, favorite: !item.favorite, updatedAt: new Date().toISOString() } : item))
+      return
+    }
+
+    setFavorite(numericId, !target.favorite)
+      .then((response) => {
+        commitItems(items.map((item) =>
+          item.id === itemId ? { ...mapSavedItemApi(response), id: item.id, tags: item.tags, collection: item.collection } : item,
+        ))
+      })
+      .catch((error: unknown) => {
+        setToast(error instanceof Error ? error.message : 'Unable to update favorites.')
+      })
   }
 
   function deleteItem(item: SavedItem) {
     if (!window.confirm(`Delete “${item.title}” from your library? This cannot be undone.`)) return
-    commitItems(items.filter((entry) => entry.id !== item.id))
-    if (selectedItem?.id === item.id) navigate('/dashboard')
-    setToast('Item deleted.')
+
+    const numericId = Number(item.id)
+    if (!Number.isFinite(numericId) || !Number.isInteger(numericId)) {
+      commitItems(items.filter((entry) => entry.id !== item.id))
+      if (selectedItem?.id === item.id) navigate('/dashboard')
+      setToast('Item deleted.')
+      return
+    }
+
+    deleteSavedItem(numericId)
+      .then(() => {
+        commitItems(items.filter((entry) => entry.id !== item.id))
+        if (selectedItem?.id === item.id) navigate('/dashboard')
+        setToast('Item deleted.')
+      })
+      .catch((error: unknown) => {
+        setToast(error instanceof Error ? error.message : 'Unable to delete this item.')
+      })
   }
 
   async function copyCode(code: string) {
