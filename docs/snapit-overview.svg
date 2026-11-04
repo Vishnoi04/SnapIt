@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="680" viewBox="0 0 1100 680" fill="none">
+  <defs>
+    <linearGradient id="canvas" x1="30" y1="0" x2="1050" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F1E6"/>
+      <stop offset="1" stop-color="#E9DFCF"/>
+    </linearGradient>
+    <linearGradient id="sage" x1="540" y1="140" x2="1000" y2="580" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DCE2CF"/>
+      <stop offset="1" stop-color="#BFC9AE"/>
+    </linearGradient>
+    <linearGradient id="peach" x1="670" y1="230" x2="850" y2="410" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E9C0A2"/>
+      <stop offset="1" stop-color="#C98661"/>
+    </linearGradient>
+    <filter id="shadow" x="30" y="30" width="1040" height="630" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1100" height="680" rx="34" fill="url(#canvas)"/>
+  <circle cx="92" cy="82" r="3" fill="#9AA483"/>
+  <circle cx="101" cy="82" r="3" fill="#D19A75"/>
+  <circle cx="110" cy="82" r="3" fill="#C5AE72"/>
+  <path d="M903 48c43 19 74 52 96 91" stroke="#C9B89F" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 8"/>
+  <path d="M46 525c20 42 57 73 100 89" stroke="#C9B89F" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 8"/>
+
+  <rect x="76" y="78" width="948" height="548" rx="28" fill="#51483E" opacity=".16" filter="url(#shadow)"/>
+  <rect x="56" y="54" width="988" height="572" rx="24" fill="#FFFCF6" stroke="#D8CBB7" stroke-width="2"/>
+  <path d="M80 54h940c13.255 0 24 10.745 24 24v42H56V78c0-13.255 10.745-24 24-24Z" fill="#F4EDE1"/>
+  <path d="M56 120h988" stroke="#E3D8C7"/>
+
+  <circle cx="86" cy="87" r="5" fill="#C78369"/>
+  <circle cx="104" cy="87" r="5" fill="#D4B36F"/>
+  <circle cx="122" cy="87" r="5" fill="#9AA483"/>
+  <rect x="433" y="72" width="352" height="30" rx="15" fill="#FFFCF6" stroke="#E5DAC9"/>
+  <path d="M450 82.5a5 5 0 1 1 10 0 5 5 0 0 1-10 0Zm8.5 4 4 4" stroke="#897D6B" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="472" y="91" class="sans" font-size="11" fill="#988B79">your personal library</text>
+
+  <rect x="77" y="143" width="204" height="458" rx="16" fill="#F5EFE4"/>
+  <rect x="96" y="163" width="30" height="30" rx="9" fill="#6F7D5B"/>
+  <path d="m105 171 6 0 5 5v8h-11v-13Z" stroke="#FFFCF6" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M111 171v5h5" stroke="#FFFCF6" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="136" y="183" class="sans" font-size="17" font-weight="700" fill="#342D25">SnapIt</text>
+  <text x="98" y="224" class="sans" font-size="10" font-weight="700" letter-spacing="1.6" fill="#968773">LIBRARY</text>
+
+  <rect x="93" y="240" width="172" height="38" rx="10" fill="#E4E8DA"/>
+  <rect x="107" y="252" width="13" height="13" rx="3" stroke="#687653" stroke-width="1.6"/>
+  <path d="M110 256h7m-7 4h7" stroke="#687653" stroke-width="1.3" stroke-linecap="round"/>
+  <text x="130" y="257" class="sans" font-size="12" font-weight="650" fill="#394331">All saved items</text>
+  <text x="245" y="257" class="sans" font-size="10" fill="#687653">24</text>
+  <path d="M107 299h13m-13 4h13m-13 4h9" stroke="#8E826F" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="130" y="307" class="sans" font-size="12" fill="#706656">Favorites</text>
+  <path d="M108 337c0-2 2-4 4-4s4 2 4 4v7h-8v-7Z" stroke="#8E826F" stroke-width="1.5"/>
+  <text x="130" y="344" class="sans" font-size="12" fill="#706656">Recently added</text>
+
+  <text x="98" y="388" class="sans" font-size="10" font-weight="700" letter-spacing="1.6" fill="#968773">COLLECTIONS</text>
+  <rect x="100" y="405" width="11" height="10" rx="2" stroke="#A56D4D" stroke-width="1.4"/>
+  <path d="M100 408h11" stroke="#A56D4D" stroke-width="1.2"/>
+  <text x="121" y="414" class="sans" font-size="12" fill="#706656">Design notes</text>
+  <rect x="100" y="436" width="11" height="10" rx="2" stroke="#71805F" stroke-width="1.4"/>
+  <path d="M100 439h11" stroke="#71805F" stroke-width="1.2"/>
+  <text x="121" y="445" class="sans" font-size="12" fill="#706656">Reading list</text>
+  <rect x="100" y="467" width="11" height="10" rx="2" stroke="#B08A50" stroke-width="1.4"/>
+  <path d="M100 470h11" stroke="#B08A50" stroke-width="1.2"/>
+  <text x="121" y="476" class="sans" font-size="12" fill="#706656">Project ideas</text>
+  <path d="M98 508h161" stroke="#E1D6C5"/>
+  <circle cx="112" cy="541" r="14" fill="#E7CEB6"/>
+  <text x="112" y="545" text-anchor="middle" class="sans" font-size="10" font-weight="700" fill="#684B38">S</text>
+  <text x="135" y="539" class="sans" font-size="11" font-weight="650" fill="#483F34">Your workspace</text>
+  <text x="135" y="554" class="sans" font-size="10" fill="#968773">Personal library</text>
+
+  <text x="314" y="169" class="sans" font-size="11" font-weight="700" letter-spacing="1.8" fill="#8A806F">A LITTLE LESS SCATTERED</text>
+  <text x="312" y="207" class="sans" font-size="28" font-weight="720" letter-spacing="-.8" fill="#342D25">Your saved things, together.</text>
+  <text x="314" y="229" class="sans" font-size="12" fill="#807565">A thoughtful home for the ideas you want to keep.</text>
+
+  <rect x="314" y="250" width="466" height="38" rx="10" fill="#FBF8F1" stroke="#E4D9C8"/>
+  <circle cx="332" cy="268" r="5" stroke="#9A8D7B" stroke-width="1.4"/>
+  <path d="m336 272 4 4" stroke="#9A8D7B" stroke-width="1.4" stroke-linecap="round"/>
+  <text x="349" y="272" class="sans" font-size="11" fill="#A09584">Search your library...</text>
+  <rect x="734" y="258" width="34" height="22" rx="7" fill="#F0E9DC"/>
+  <text x="751" y="273" text-anchor="middle" class="sans" font-size="9" font-weight="650" fill="#887D6D">⌘ K</text>
+  <rect x="793" y="250" width="105" height="38" rx="10" fill="#6B7957"/>
+  <path d="M809 269h14m-7-7v14" stroke="#FFFDF8" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="832" y="272" class="sans" font-size="11" font-weight="650" fill="#FFFDF8">Save something</text>
+
+  <rect x="314" y="307" width="79" height="26" rx="13" fill="#E4E8DA"/>
+  <text x="353" y="324" text-anchor="middle" class="sans" font-size="10" font-weight="650" fill="#4A5940">Everything</text>
+  <rect x="401" y="307" width="66" height="26" rx="13" fill="#F4EFE5"/>
+  <text x="434" y="324" text-anchor="middle" class="sans" font-size="10" fill="#7B7061">Websites</text>
+  <rect x="475" y="307" width="54" height="26" rx="13" fill="#F4EFE5"/>
+  <text x="502" y="324" text-anchor="middle" class="sans" font-size="10" fill="#7B7061">Images</text>
+  <rect x="537" y="307" width="47" height="26" rx="13" fill="#F4EFE5"/>
+  <text x="560" y="324" text-anchor="middle" class="sans" font-size="10" fill="#7B7061">Notes</text>
+  <text x="875" y="324" text-anchor="end" class="sans" font-size="10" fill="#9A8D7B">24 saved items</text>
+
+  <rect x="314" y="351" width="190" height="224" rx="14" fill="#FFFCF6" stroke="#E4D9C8"/>
+  <rect x="326" y="363" width="166" height="103" rx="9" fill="url(#sage)"/>
+  <circle cx="452" cy="390" r="20" fill="#F5EFE4" opacity=".8"/>
+  <path d="M338 447c20-31 34-28 48-5 15-24 28-26 46-2 13-21 25-22 48-2v28H338v-19Z" fill="#84916F"/>
+  <rect x="338" y="377" width="48" height="7" rx="3.5" fill="#FFFDF8" opacity=".78"/>
+  <rect x="338" y="389" width="79" height="5" rx="2.5" fill="#FFFDF8" opacity=".58"/>
+  <rect x="338" y="401" width="62" height="5" rx="2.5" fill="#FFFDF8" opacity=".58"/>
+  <rect x="327" y="477" width="67" height="19" rx="9.5" fill="#EDF0E6"/>
+  <text x="360" y="490" text-anchor="middle" class="sans" font-size="8" font-weight="700" letter-spacing=".8" fill="#657251">WEBPAGE</text>
+  <path d="M474 486h5m-2.5-2.5v5" stroke="#A38B67" stroke-width="1.4" stroke-linecap="round"/>
+  <text x="327" y="519" class="sans" font-size="12" font-weight="700" fill="#393229">Small spaces, big ideas</text>
+  <text x="327" y="539" class="sans" font-size="10" fill="#8C806F">A note on thoughtful design</text>
+  <rect x="327" y="549" width="57" height="17" rx="8.5" fill="#F2E6D7"/>
+  <text x="355" y="561" text-anchor="middle" class="sans" font-size="8" fill="#9A6749">#inspiration</text>
+  <rect x="389" y="549" width="41" height="17" rx="8.5" fill="#EDF0E6"/>
+  <text x="409" y="561" text-anchor="middle" class="sans" font-size="8" fill="#687653">#design</text>
+
+  <rect x="519" y="351" width="190" height="224" rx="14" fill="#FFFCF6" stroke="#E4D9C8"/>
+  <rect x="531" y="363" width="166" height="103" rx="9" fill="#F0DFCF"/>
+  <path d="M546 448c23-24 38-42 58-57 12-9 24-6 34 3 14 12 27 30 47 54v18H546v-18Z" fill="url(#peach)"/>
+  <circle cx="669" cy="384" r="12" fill="#F6E7CF"/>
+  <path d="M548 446c24-13 40-20 61-19 27 2 39 15 69 14v25H548v-20Z" fill="#9AA483"/>
+  <text x="545" y="490" class="sans" font-size="8" font-weight="700" letter-spacing=".8" fill="#A56A4C">IMAGE</text>
+  <text x="532" y="519" class="sans" font-size="12" font-weight="700" fill="#393229">Colors for the next project</text>
+  <text x="532" y="539" class="sans" font-size="10" fill="#8C806F">A palette worth keeping</text>
+  <rect x="532" y="549" width="48" height="17" rx="8.5" fill="#F2E6D7"/>
+  <text x="556" y="561" text-anchor="middle" class="sans" font-size="8" fill="#9A6749">#palette</text>
+  <rect x="585" y="549" width="50" height="17" rx="8.5" fill="#EDF0E6"/>
+  <text x="610" y="561" text-anchor="middle" class="sans" font-size="8" fill="#687653">#project</text>
+
+  <rect x="724" y="351" width="190" height="224" rx="14" fill="#FFFCF6" stroke="#E4D9C8"/>
+  <rect x="736" y="363" width="166" height="103" rx="9" fill="#EAE4D9"/>
+  <rect x="753" y="379" width="131" height="72" rx="7" fill="#363831"/>
+  <circle cx="764" cy="390" r="2.5" fill="#D18467"/>
+  <circle cx="772" cy="390" r="2.5" fill="#D5B46F"/>
+  <circle cx="780" cy="390" r="2.5" fill="#98A57D"/>
+  <path d="M766 408h27m-27 9h43m-43 9h34m-34 9h49" stroke="#D2C6AE" stroke-width="2" stroke-linecap="round"/>
+  <path d="M771 408h9m-19 9h10m20 0h8m-19 9h14m12 0h8m-43 9h14" stroke="#9AA483" stroke-width="2" stroke-linecap="round"/>
+  <text x="750" y="490" class="sans" font-size="8" font-weight="700" letter-spacing=".8" fill="#687653">CODE SNIPPET</text>
+  <text x="737" y="519" class="sans" font-size="12" font-weight="700" fill="#393229">A handy little helper</text>
+  <text x="737" y="539" class="sans" font-size="10" fill="#8C806F">TypeScript · utilities</text>
+  <rect x="737" y="549" width="56" height="17" rx="8.5" fill="#F2E6D7"/>
+  <text x="765" y="561" text-anchor="middle" class="sans" font-size="8" fill="#9A6749">#toolbox</text>
+  <rect x="798" y="549" width="42" height="17" rx="8.5" fill="#EDF0E6"/>
+  <text x="819" y="561" text-anchor="middle" class="sans" font-size="8" fill="#687653">#code</text>
+
+  <text x="314" y="599" class="sans" font-size="10" fill="#938775">Collect a little. Organize naturally. Find it again.</text>
+  <rect x="911" y="593" width="7" height="7" rx="3.5" fill="#74815F"/>
+  <text x="925" y="600" class="sans" font-size="9" font-weight="650" fill="#687653">YOUR IDEAS, IN ONE PLACE</text>
+</svg>
