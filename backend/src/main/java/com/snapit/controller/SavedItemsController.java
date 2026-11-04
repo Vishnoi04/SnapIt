@@ -17,8 +17,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 @RestController
@@ -137,9 +139,15 @@ public class SavedItemsController {
     @GetMapping("/{id}/file")
     public ResponseEntity<Resource> getSavedItemFile(@PathVariable Long id) {
         Resource file = savedItemsService.getOwnedFile(id);
+        MediaType contentType = MediaTypeFactory.getMediaType(file)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .contentType(contentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        org.springframework.http.ContentDisposition.inline()
+                                .filename(file.getFilename(), StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
                 .body(file);
     }
 

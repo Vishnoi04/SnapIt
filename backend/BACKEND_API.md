@@ -52,7 +52,7 @@ Database settings are `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD`. `SNAPIT_CORS_A
 | GET | `/api/saved-items/search` | Optional `keyword`, `contentType`, `favorite`, `tagId`, `page`, `size`, `sortBy`, `direction` | `200` paged saved-item responses |
 | GET | `/api/saved-items/favorites` | `page`, `size`, `sortBy`, `direction` | `200` paged saved-item responses |
 | PUT | `/api/saved-items/{id}/favorite` | `{"favorite":true}` | `200` saved-item response |
-| GET | `/api/saved-items/{id}/file` | — | `200` file download (`application/octet-stream`) |
+| GET | `/api/saved-items/{id}/file` | — | `200` stored file served inline with its detected media type (for PDF/image previews) |
 | DELETE | `/api/saved-items/{id}/file` | — | `204`; clears stored-file reference |
 
 The saved-item response contains `id`, `title`, `sourceUrl`, `contentType`, `description`, `extractedText`, `processingStatus`, `favorite`, `language`, `createdAt`, and `updatedAt`; it never includes the local storage path. Sort fields are `createdAt`, `updatedAt`, `title`, `contentType`, and `favorite`; page size is limited to 100. Content type values are `WEBPAGE`, `IMGAGE` (legacy enum spelling), `TEXT`, and `PDF`.

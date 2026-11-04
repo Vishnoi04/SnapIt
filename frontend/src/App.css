@@ -2346,6 +2346,7 @@
 }
 
 .saved-card-art,
+.saved-card-image-preview,
 .saved-card-website-preview,
 .saved-card-pdf-preview,
 .saved-card-code-preview,
@@ -2361,6 +2362,19 @@
 .saved-card-art {
   color: #eee3d1;
   background: #808578;
+}
+
+.saved-card-image-preview {
+  width: 100%;
+  object-fit: cover;
+  background: var(--bg-secondary);
+}
+
+.saved-image-placeholder {
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 9px;
 }
 
 .saved-card-art-warm {
@@ -2811,6 +2825,26 @@
   background: linear-gradient(135deg, #777c6e, #b78f70);
 }
 
+.details-image-section {
+  margin: 20px 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+}
+
+.details-image-viewer {
+  display: block;
+  width: 100%;
+  max-height: min(72vh, 760px);
+  object-fit: contain;
+  background: #1d1e1a;
+}
+
+.details-image-section .details-image-preview {
+  margin: 0;
+}
+
 .details-image-preview span {
   color: #f6f2e9;
   font-size: 9px;
@@ -2818,6 +2852,31 @@
 
 .details-pdf-preview > svg {
   color: var(--color-heart);
+}
+
+.details-pdf-section {
+  margin: 20px 0;
+}
+
+.details-pdf-section .details-pdf-preview {
+  justify-content: flex-start;
+  min-height: 84px;
+  margin: 0;
+  padding: 14px;
+}
+
+.details-pdf-section .details-pdf-preview > button {
+  margin-left: auto;
+}
+
+.details-pdf-viewer {
+  display: block;
+  width: 100%;
+  height: min(78vh, 900px);
+  min-height: 480px;
+  border: 1px solid var(--border-color);
+  border-top: 0;
+  background: #fff;
 }
 
 .details-pdf-preview > span {

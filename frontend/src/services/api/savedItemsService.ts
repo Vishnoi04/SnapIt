@@ -41,10 +41,15 @@ export async function fetchSavedItemById(id: number): Promise<SavedItemApiType> 
 }
 
 export async function createSavedItem(payload: SavedItemCreateRequest): Promise<SavedItemApiType> {
-  return apiRequest<SavedItemApiType>('/api/saved-items', {
+  const result = await apiRequest<string>('/api/saved-items', {
     method: 'POST',
     json: payload,
   })
+  const id = result.match(/\bID\s*:\s*(\d+)\b/i)?.[1]
+  if (!id) {
+    throw new Error('The saved item was created, but the server did not return its ID.')
+  }
+  return fetchSavedItemById(Number(id))
 }
 
 export async function updateSavedItem(id: number, payload: SavedItemCreateRequest): Promise<SavedItemApiType> {

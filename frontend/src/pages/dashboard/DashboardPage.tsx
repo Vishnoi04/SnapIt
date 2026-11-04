@@ -33,7 +33,8 @@ import {
 } from 'lucide-react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import ItemEditorDialog from '../../components/dashboard/ItemEditorDialog'
-import { createSavedItem, deleteSavedItem, fetchSavedItems, setFavorite, updateSavedItem } from '../../services/api/savedItemsService'
+import { createSavedItem, deleteSavedItem, fetchSavedItems, setFavorite, updateSavedItem, uploadImage, uploadPdf } from '../../services/api/savedItemsService'
+import { downloadSavedItemFile } from '../../services/api/fileService'
 import { loadSavedItems, persistSavedItems } from '../../services/mockItems'
 import {
   loadCollections,
@@ -212,7 +213,7 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
                 ? `${savedItemTypeLabels[routeType]}s`
                 : 'All saved items'
 
-  function saveItem(item: SavedItem) {
+  async function saveItem(item: SavedItem, file?: File) {
     const mapper: Record<SavedItemType, 'WEBPAGE' | 'IMGAGE' | 'TEXT' | 'PDF'> = {
       website: 'WEBPAGE',
       image: 'IMGAGE',
@@ -230,11 +231,23 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
       language: item.language || null,
     }
 
-    const request = item.id && /^\d+$/.test(item.id)
-      ? updateSavedItem(Number(item.id), payload)
-      : createSavedItem(payload)
+    try {
+      let response
+      if (file && (item.type === 'pdf' || item.type === 'image')) {
+        const uploaded = item.type === 'pdf' ? await uploadPdf(file) : await uploadImage(file)
+        response = await updateSavedItem(uploaded.id, {
+          ...payload,
+          extractedText: uploaded.extractedText,
+        })
+      } else {
+        response = item.id && /^\d+$/.test(item.id)
+          ? await updateSavedItem(Number(item.id), payload)
+          : await createSavedItem(payload)
+      }
 
-    request.then((response) => {
+      if (response.favorite !== item.favorite) {
+        response = await setFavorite(response.id, item.favorite)
+      }
       const nextItem = mapSavedItemApi(response)
       const exists = items.some((existing) => existing.id === item.id)
       const nextItems = exists
@@ -244,10 +257,10 @@ function DashboardPage({ theme, onToggleTheme }: DashboardPageProps) {
       setEditorOpen(false)
       setEditorItem(null)
       setToast(editorItem ? 'Your changes are saved.' : 'Saved to your SnapIt library.')
-    }).catch((error: unknown) => {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unable to save your item right now.'
       setToast(message)
-    })
+    }
   }
 
   function toggleFavorite(itemId: string) {
@@ -694,10 +707,7 @@ function SavedItemCard({
     <article className={`saved-item-card saved-card-${item.type}`}>
       <button type="button" className="saved-card-open" onClick={onOpen} aria-label={`Open ${item.title}`}>
         {item.type === 'image' ? (
-          <div className={`saved-card-art ${item.id.includes('color') ? 'saved-card-art-warm' : ''}`}>
-            <span>{item.id.includes('color') ? 'COLOR / STUDY' : 'FORM & FUNCTION'}</span>
-            <i />
-          </div>
+          <SavedImagePreview itemId={item.id} title={item.title} className="saved-card-image-preview" />
         ) : item.type === 'website' ? (
           <div className="saved-card-website-preview">
             <span><Globe2 size={13} /> {getDomain(item.url)}</span>
@@ -744,7 +754,7 @@ function SavedItemCard({
             </div>
           </div>
         </div>
-        <p className="saved-card-description">{item.description || item.content}</p>
+        <p className="saved-card-description">{item.type === 'image' ? item.content || item.description : item.description || item.content}</p>
         {item.type === 'website' && item.url && <a className="saved-card-domain" href={item.url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>{getDomain(item.url)} <span aria-hidden="true">↗</span></a>}
         <div className="saved-card-tags">
           {item.tags.slice(0, 3).map((tag) => <button key={tag} type="button" onClick={() => onTag(tag)}>#{tag}</button>)}
@@ -776,13 +786,97 @@ function ItemDetails({
   onTag: (tag: string) => void
 }) {
   const TypeIcon = typeIcons[item.type]
+  const [pdfUrl, setPdfUrl] = useState('')
+  const [pdfError, setPdfError] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [imageError, setImageError] = useState('')
+
+  useEffect(() => {
+    if (item.type !== 'pdf') {
+      setPdfUrl('')
+      setPdfError('')
+      return
+    }
+    if (!/^\d+$/.test(item.id)) {
+      setPdfUrl('')
+      setPdfError('This item has no PDF file stored.')
+      return
+    }
+
+    let isMounted = true
+    let objectUrl = ''
+    setPdfUrl('')
+    setPdfError('')
+    downloadSavedItemFile(Number(item.id))
+      .then((file) => {
+        if (!isMounted) return
+        objectUrl = URL.createObjectURL(new Blob([file], { type: 'application/pdf' }))
+        setPdfUrl(objectUrl)
+      })
+      .catch((error: unknown) => {
+        if (isMounted) setPdfError(error instanceof Error ? error.message : 'Unable to load this PDF.')
+      })
+
+    return () => {
+      isMounted = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [item.id, item.type])
+
+  useEffect(() => {
+    if (item.type !== 'image') {
+      setImageUrl('')
+      setImageError('')
+      return
+    }
+    if (!/^\d+$/.test(item.id)) {
+      setImageUrl('')
+      setImageError('This item has no uploaded image.')
+      return
+    }
+
+    let isMounted = true
+    let objectUrl = ''
+    setImageUrl('')
+    setImageError('')
+    downloadSavedItemFile(Number(item.id))
+      .then((file) => {
+        if (!isMounted) return
+        objectUrl = URL.createObjectURL(file)
+        setImageUrl(objectUrl)
+      })
+      .catch((error: unknown) => {
+        if (isMounted) setImageError(error instanceof Error ? error.message : 'Unable to load this image.')
+      })
+
+    return () => {
+      isMounted = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [item.id, item.type])
+
   return (
     <section className="item-details">
       <button type="button" className="details-back" onClick={onBack}><ArrowLeft size={15} /> Back to your library</button>
       <div className="details-card">
         <div className="details-topline"><span className="saved-item-type"><TypeIcon size={13} />{savedItemTypeLabels[item.type]}</span><span>Saved {formatDate(item.createdAt)}</span></div>
-        {item.type === 'image' && <div className="details-image-preview"><Image size={34} /><span>{item.fileName || 'Image reference saved locally'}</span></div>}
-        {item.type === 'pdf' && <div className="details-pdf-preview"><FileText size={29} /><span><strong>{item.fileName || item.title}</strong><small>PDF preview · file reference only</small></span></div>}
+        {item.type === 'image' && (
+          <div className="details-image-section">
+            {imageUrl
+              ? <img className="details-image-viewer" src={imageUrl} alt={item.title} />
+              : <div className="details-image-preview"><Image size={34} /><span>{imageError || 'Loading image…'}</span></div>}
+          </div>
+        )}
+        {item.type === 'pdf' && (
+          <div className="details-pdf-section">
+            <div className="details-pdf-preview">
+              <FileText size={29} />
+              <span><strong>{item.fileName || item.title}</strong><small>{pdfUrl ? 'PDF ready to read' : pdfError || 'Loading PDF…'}</small></span>
+              {pdfUrl && <a className="dashboard-button dashboard-button-secondary" href={pdfUrl} target="_blank" rel="noreferrer">Open in new tab</a>}
+            </div>
+            {pdfUrl && <iframe className="details-pdf-viewer" src={pdfUrl} title={`PDF preview: ${item.title}`} />}
+          </div>
+        )}
         {item.type === 'website' && <div className="details-website-preview"><BookOpen size={20} /><span>{getDomain(item.url)}</span></div>}
         <div className="details-title-row">
           <h2>{item.title}</h2>
@@ -796,6 +890,18 @@ function ItemDetails({
         {item.url && <a className="details-source-link" href={item.url} target="_blank" rel="noreferrer">{item.url} <span aria-hidden="true">↗</span></a>}
         {item.description && <p className="details-description">{item.description}</p>}
         {item.type === 'note' && <div className="details-content-text">{item.content}</div>}
+        {item.type === 'image' && (
+          <div className="details-content-text">
+            <span className="details-section-label">EXTRACTED TEXT</span>
+            {item.content || 'No readable text was extracted from this image.'}
+          </div>
+        )}
+        {item.type === 'pdf' && (
+          <div className="details-content-text">
+            <span className="details-section-label">EXTRACTED TEXT</span>
+            {item.content || 'No readable text was extracted from this PDF.'}
+          </div>
+        )}
         {item.type === 'website' && item.content && <div className="details-content-text"><span className="details-section-label">SAVED EXCERPT</span>{item.content}</div>}
         {item.type === 'code' && (
           <div className="details-code">
@@ -809,6 +915,42 @@ function ItemDetails({
       </div>
     </section>
   )
+}
+
+function SavedImagePreview({ itemId, title, className }: { itemId: string; title: string; className: string }) {
+  const [imageUrl, setImageUrl] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!/^\d+$/.test(itemId)) {
+      setImageUrl('')
+      setError('Image not available')
+      return
+    }
+
+    let isMounted = true
+    let objectUrl = ''
+    setImageUrl('')
+    setError('')
+    downloadSavedItemFile(Number(itemId))
+      .then((file) => {
+        if (!isMounted) return
+        objectUrl = URL.createObjectURL(file)
+        setImageUrl(objectUrl)
+      })
+      .catch(() => {
+        if (isMounted) setError('Image not available')
+      })
+
+    return () => {
+      isMounted = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [itemId])
+
+  return imageUrl
+    ? <img className={className} src={imageUrl} alt={title} />
+    : <div className={`${className} saved-image-placeholder`}><Image size={26} /><span>{error || 'Loading image…'}</span></div>
 }
 
 export default DashboardPage

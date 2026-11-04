@@ -7,7 +7,7 @@ type ItemEditorDialogProps = {
   item?: SavedItem
   collections: string[]
   onClose: () => void
-  onSave: (item: SavedItem) => void
+  onSave: (item: SavedItem, file?: File) => void
 }
 
 const languages = ['Java', 'JavaScript', 'TypeScript', 'Python', 'SQL', 'HTML', 'CSS', 'JSON']
@@ -22,9 +22,11 @@ function ItemEditorDialog({ item, collections, onClose, onSave }: ItemEditorDial
   const [collection, setCollection] = useState(item?.collection ?? '')
   const [language, setLanguage] = useState(item?.language ?? 'TypeScript')
   const [fileName, setFileName] = useState(item?.fileName ?? '')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [favorite, setFavorite] = useState(item?.favorite ?? false)
   const [error, setError] = useState('')
+  const hasSavedFile = item?.type === type && /^\d+$/.test(item.id)
 
   useEffect(() => {
     return () => {
@@ -53,7 +55,8 @@ function ItemEditorDialog({ item, collections, onClose, onSave }: ItemEditorDial
       }
     }
 
-    if ((type === 'image' || type === 'pdf') && !fileName.trim()) {
+    const canKeepExistingFile = item?.type === type && /^\d+$/.test(item.id)
+    if ((type === 'image' || type === 'pdf') && !selectedFile && !canKeepExistingFile) {
       setError(`Choose a ${type === 'pdf' ? 'PDF' : 'image'} file to continue.`)
       return
     }
@@ -78,7 +81,7 @@ function ItemEditorDialog({ item, collections, onClose, onSave }: ItemEditorDial
       updatedAt: now,
       fileName: type === 'image' || type === 'pdf' ? fileName : '',
       language: type === 'code' ? language : '',
-    })
+    }, selectedFile ?? undefined)
   }
 
   return (
@@ -104,6 +107,9 @@ function ItemEditorDialog({ item, collections, onClose, onSave }: ItemEditorDial
               className={type === itemType ? 'type-picker-active' : ''}
               onClick={() => {
                 setType(itemType)
+                setSelectedFile(null)
+                setFileName('')
+                setPreviewUrl('')
                 setError('')
               }}
             >
@@ -128,18 +134,25 @@ function ItemEditorDialog({ item, collections, onClose, onSave }: ItemEditorDial
           {(type === 'image' || type === 'pdf') && (
             <label className="dashboard-field">
               <span>{type === 'pdf' ? 'PDF file' : 'Image file'} <b aria-hidden="true">*</b></span>
-              <input
-                type="file"
-                accept={type === 'pdf' ? 'application/pdf,.pdf' : 'image/*'}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  setFileName(file?.name ?? '')
-                  setPreviewUrl(file && type === 'image' ? URL.createObjectURL(file) : '')
-                }}
-              />
-              {fileName && <small className="file-selection">{fileName} · saved as a local demo reference</small>}
+              {hasSavedFile ? (
+                <small className="file-selection">The saved file stays attached while you edit this item.</small>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept={type === 'pdf' ? 'application/pdf,.pdf' : 'image/*'}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      setSelectedFile(file ?? null)
+                      setFileName(file?.name ?? '')
+                      setPreviewUrl(file && type === 'image' ? URL.createObjectURL(file) : '')
+                    }}
+                  />
+                  {fileName && <small className="file-selection">{fileName} · uploaded to your library</small>}
+                </>
+              )}
               {type === 'image' && previewUrl && <img className="editor-image-preview" src={previewUrl} alt="Selected image preview" />}
-              {type === 'pdf' && fileName && <div className="editor-pdf-preview"><FileText size={23} /><span><strong>{fileName}</strong><small>PDF preview placeholder</small></span></div>}
+              {type === 'pdf' && fileName && <div className="editor-pdf-preview"><FileText size={23} /><span><strong>{fileName}</strong><small>PDF will be available in your library</small></span></div>}
             </label>
           )}
 
