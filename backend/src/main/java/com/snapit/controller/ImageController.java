@@ -7,9 +7,9 @@ import com.snapit.enums.ProcessingStatus;
 import com.snapit.service.FileStorageService;
 import com.snapit.service.ImageOcrService;
 import com.snapit.service.SavedItemsService;
+import com.snapit.exception.UploadTooLargeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,30 +31,56 @@ public class ImageController {
     private ImageOcrService imageOcrService;
 
     @PostMapping
-    public ResponseEntity<SavedItemsResponse> uploadImage(@RequestParam("file")MultipartFile file) throws IOException{
-        if (file.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<SavedItemsResponse> uploadImage(@RequestParam("file") MultipartFile file)
+            throws IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file cannot be empty.");
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !(contentType.equals("image/png") || contentType.equals("image/jpeg"))){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (file.getSize() > 10 * 1024 * 1024){
-            return new ResponseEntity<>(HttpStatus.PAYLOAD_TOO_LARGE);
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new UploadTooLargeException();
         }
 
+        String extractedText = imageOcrService.extractText(file);
         String filePath = fileStorageService.storeFile(file);
-        String extractText = imageOcrService.extractText(file);
-        SavedItemsRequest savedItemsRequest = new SavedItemsRequest();
-        savedItemsRequest.setFilePath(filePath);
-        savedItemsRequest.setDescription("Image uploaded on Snapit");
-        savedItemsRequest.setTitle(file.getOriginalFilename());
-        savedItemsRequest.setContentType(MemoryType.IMGAGE);
-        savedItemsRequest.setExtractedText(extractText);
+        Long savedItemId = null;
+        try {
+            SavedItemsRequest savedItemsRequest = new SavedItemsRequest();
+            savedItemsRequest.setFilePath(filePath);
+            savedItemsRequest.setDescription("Image uploaded on Snapit");
+            savedItemsRequest.setTitle(resolveTitle(file.getOriginalFilename(), "Uploaded image"));
+            savedItemsRequest.setContentType(MemoryType.IMGAGE);
+            savedItemsRequest.setExtractedText(extractedText);
 
-        SavedItemsResponse savedItemsResponse = savedItemsService.saveItem(savedItemsRequest);
-        savedItemsResponse.setProcessingStatus(ProcessingStatus.COMPLETED);
-        savedItemsService.updateProcessingStatus(savedItemsResponse.getId(), ProcessingStatus.COMPLETED);
-        return new ResponseEntity<>(savedItemsResponse, HttpStatus.CREATED);
+            SavedItemsResponse savedItemsResponse = savedItemsService.saveItem(savedItemsRequest);
+            savedItemId = savedItemsResponse.getId();
+            savedItemsResponse.setProcessingStatus(ProcessingStatus.COMPLETED);
+            savedItemsService.updateProcessingStatus(savedItemsResponse.getId(), ProcessingStatus.COMPLETED);
+            return new ResponseEntity<>(savedItemsResponse, HttpStatus.CREATED);
+        } catch (RuntimeException exception) {
+            cleanupFailedUpload(savedItemId, filePath, exception);
+            throw exception;
+        }
+    }
+
+    private String resolveTitle(String originalFilename, String fallback) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return fallback;
+        }
+        return originalFilename.length() <= 200 ? originalFilename : originalFilename.substring(0, 200);
+    }
+
+    private void cleanupFailedUpload(Long savedItemId, String filePath, RuntimeException exception) {
+        if (savedItemId != null) {
+            try {
+                savedItemsService.deleteSavedItemById(savedItemId);
+            } catch (RuntimeException cleanupException) {
+                exception.addSuppressed(cleanupException);
+            }
+        }
+        try {
+            fileStorageService.deleteFile(filePath);
+        } catch (IOException | RuntimeException cleanupException) {
+            exception.addSuppressed(cleanupException);
+        }
     }
 }

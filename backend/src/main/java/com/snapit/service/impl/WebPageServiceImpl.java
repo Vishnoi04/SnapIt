@@ -34,7 +34,7 @@ public class WebPageServiceImpl implements WebPageService {
         String title = document.title();
         String description = document.select("meta[name=description]").attr("content");
         document.select("script, style, noscript").remove();
-        String text = document.body().text();
+        String text = document.body() == null ? "" : document.body().text();
         if (text.length() > 100_000){
             text = text.substring(0, 100_000);
         }

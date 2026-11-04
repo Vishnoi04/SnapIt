@@ -18,12 +18,12 @@ public class JwtService {
     @Value("${snapit.jwt.expiration-ms}")
     private long jwtExpirationMs;
 
-    private SecretKey getSigningKey(){
+    private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(User user){
+    public String generateToken(User user) {
         Date issuedDate = new Date();
         Date expiredBy = new Date(issuedDate.getTime() + jwtExpirationMs);
         return Jwts.builder().subject(user.getEmail()).claim("userId", user.getId())
@@ -39,8 +39,18 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
         String email = claims.getSubject();
         Date expiration = claims.getExpiration();
-        return email.equals(user.getEmail())
-                && expiration.after(new Date());
+        Object tokenUserId = claims.get("userId");
+        Object tokenRole = claims.get("role");
+        return email != null
+                && email.equals(user.getEmail())
+                && expiration != null
+                && expiration.after(new Date())
+                && tokenUserId instanceof Number userId
+                && user.getId() != null
+                && userId.longValue() == user.getId()
+                && tokenRole instanceof String role
+                && user.getRole() != null
+                && role.equals(user.getRole().name());
     }
 
     private Claims extractAllClaims(String token) {

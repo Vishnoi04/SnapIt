@@ -7,6 +7,7 @@ import com.snapit.enums.ProcessingStatus;
 import com.snapit.service.FileStorageService;
 import com.snapit.service.PdfExtractionService;
 import com.snapit.service.SavedItemsService;
+import com.snapit.exception.UploadTooLargeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.lang.management.MemoryUsage;
 
 @RestController
 @RequestMapping("/api/pdfs")
@@ -30,29 +30,54 @@ public class PdfController {
     private FileStorageService fileStorageService;
 
     @PostMapping
-    public ResponseEntity<SavedItemsResponse> uploadPdf(@RequestParam("file")MultipartFile file) throws IOException {
-        if (file.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<SavedItemsResponse> uploadPdf(@RequestParam("file") MultipartFile file)
+            throws IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file cannot be empty.");
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.equalsIgnoreCase("application/pdf")){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (file.getSize() > 10 * 1024 * 1024){
-            return new ResponseEntity<>(HttpStatus.PAYLOAD_TOO_LARGE);
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new UploadTooLargeException();
         }
         String extractedText = pdfExtractionService.extractText(file);
         String filePath = fileStorageService.storeFile(file);
+        Long savedItemId = null;
+        try {
+            SavedItemsRequest savedItemsRequest = new SavedItemsRequest();
+            savedItemsRequest.setTitle(resolveTitle(file.getOriginalFilename()));
+            savedItemsRequest.setExtractedText(extractedText);
+            savedItemsRequest.setContentType(MemoryType.PDF);
+            savedItemsRequest.setDescription("PDF is uploaded on Snapit");
+            savedItemsRequest.setFilePath(filePath);
+            SavedItemsResponse savedItemsResponse = savedItemsService.saveItem(savedItemsRequest);
+            savedItemId = savedItemsResponse.getId();
+            savedItemsResponse.setProcessingStatus(ProcessingStatus.COMPLETED);
+            savedItemsService.updateProcessingStatus(savedItemsResponse.getId(), ProcessingStatus.COMPLETED);
+            return new ResponseEntity<>(savedItemsResponse, HttpStatus.CREATED);
+        } catch (RuntimeException exception) {
+            cleanupFailedUpload(savedItemId, filePath, exception);
+            throw exception;
+        }
+    }
 
-        SavedItemsRequest savedItemsRequest = new SavedItemsRequest();
-        savedItemsRequest.setTitle(file.getOriginalFilename());
-        savedItemsRequest.setExtractedText(extractedText);
-        savedItemsRequest.setContentType(MemoryType.PDF);
-        savedItemsRequest.setDescription("PDF is uploaded on Snapit");
-        savedItemsRequest.setFilePath(filePath);
-        SavedItemsResponse savedItemsResponse = savedItemsService.saveItem(savedItemsRequest);
-        savedItemsResponse.setProcessingStatus(ProcessingStatus.COMPLETED);
-        savedItemsService.updateProcessingStatus(savedItemsResponse.getId(), ProcessingStatus.COMPLETED);
-        return new ResponseEntity<>(savedItemsResponse, HttpStatus.CREATED);
+    private String resolveTitle(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return "Uploaded PDF";
+        }
+        return originalFilename.length() <= 200 ? originalFilename : originalFilename.substring(0, 200);
+    }
+
+    private void cleanupFailedUpload(Long savedItemId, String filePath, RuntimeException exception) {
+        if (savedItemId != null) {
+            try {
+                savedItemsService.deleteSavedItemById(savedItemId);
+            } catch (RuntimeException cleanupException) {
+                exception.addSuppressed(cleanupException);
+            }
+        }
+        try {
+            fileStorageService.deleteFile(filePath);
+        } catch (IOException | RuntimeException cleanupException) {
+            exception.addSuppressed(cleanupException);
+        }
     }
 }

@@ -8,7 +8,11 @@ import com.snapit.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
+import java.util.Locale;
+
+@Service
 public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserRepository userRepository;
@@ -19,9 +23,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(()-> new BadCredentialsException("Invalid email or password."));
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+        String email = loginRequest.getEmail().trim().toLowerCase(Locale.ROOT);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password."));
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid email or password.");
         }
         String token = jwtService.generateToken(user);

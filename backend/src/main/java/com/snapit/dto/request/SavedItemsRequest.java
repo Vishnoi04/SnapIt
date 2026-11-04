@@ -1,5 +1,6 @@
 package com.snapit.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.snapit.enums.MemoryType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +17,7 @@ public class SavedItemsRequest {
     private MemoryType contentType;
     private String description;
     private String extractedText;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String filePath;
     private String language;
 

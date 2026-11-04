@@ -15,9 +15,9 @@ public class SavedItemsResponse {
     private MemoryType contentType;
     private String description;
     private String extractedText;
-    private String filePath;
     @Enumerated(EnumType.STRING)
     private ProcessingStatus processingStatus;
+    private boolean favorite;
     private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -26,14 +26,13 @@ public class SavedItemsResponse {
     }
 
     public SavedItemsResponse(Long id, String title, String sourceUrl, MemoryType contentType, String description,
-                              String extractedText, String filePath, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                              String extractedText, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.sourceUrl = sourceUrl;
         this.contentType = contentType;
         this.description = description;
         this.extractedText = extractedText;
-        this.filePath = filePath;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -86,20 +85,20 @@ public class SavedItemsResponse {
         this.extractedText = extractedText;
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
     public ProcessingStatus getProcessingStatus() {
         return processingStatus;
     }
 
     public void setProcessingStatus(ProcessingStatus processingStatus) {
         this.processingStatus = processingStatus;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 
     public String getLanguage() {

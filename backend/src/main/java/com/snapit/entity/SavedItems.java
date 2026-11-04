@@ -17,15 +17,18 @@ public class SavedItems {
     @Enumerated(EnumType.STRING)
     private MemoryType contentType;
     private String description;
+    @Column(columnDefinition = "TEXT")
     private String extractedText;
     private String filePath;
     @Enumerated(EnumType.STRING)
     private ProcessingStatus processingStatus = ProcessingStatus.PENDING;
+    @Column(name = "is_favorite", nullable = false)
+    private boolean favorite;
     private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     public SavedItems() {
@@ -109,6 +112,14 @@ public class SavedItems {
         this.processingStatus = processingStatus;
     }
 
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
     public String getLanguage() {
         return language;
     }
@@ -142,11 +153,12 @@ public class SavedItems {
     }
 
     @PrePersist
-    public void onCreate(){
+    public void onCreate() {
         LocalDateTime currentDateTime = LocalDateTime.now();
         createdAt = currentDateTime;
         updatedAt = currentDateTime;
     }
+
     @PreUpdate
     public void onUpdate() {
         updatedAt = LocalDateTime.now();
